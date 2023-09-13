@@ -1,4 +1,4 @@
-package com.mkyong;
+package xyz.bergw;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
