@@ -47,7 +47,7 @@ public class MainController {
 
 <h1>Save</h1>
 
-<form action="/save" method="post" enctype="multipart/form-data" id="save">
+<form action="save" method="post" enctype="multipart/form-data" id="save">
   <label for="name">Name:</label>
   <input type="text" id="name" name="name"><br><br>
   <label for="file">File:</label>
@@ -61,7 +61,7 @@ Data:<br><br>
 
 <h1>Load</h1>
 
-<form action="/load" method="get">
+<form action="load" method="get">
   <label for="name">Name:</label>
   <input type="text" id="name" name="name">
   <input type="submit" value="Submit">
@@ -78,8 +78,34 @@ Data:<br><br>
                 <!DOCTYPE html>
                 <html>
                 <body>
+                <script type="text/javascript">
+                function deleteF(name) {
+                    let uiDiv = document.createElement("div");
+                    record = document.getElementById(name);
+                    button = document.getElementById(name + "-button");
+    
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("POST", "delete?name=" + name, true);
+                    xhr.onload = (e) => {
+                      if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                          uiDiv.innerHTML = "Deleted"
+                          button.remove();
+                        } else {
+                          uiDiv.innerHTML = "Delete failed"
+                        }
+                      }
+                    };
+                    xhr.onerror = (e) => {
+                      uiDiv.innerHTML = "Delete really failed"
+                    };
+                    xhr.send(null);
+    
+                    record.appendChild(uiDiv);
+                }
+                </script>
                                 
-                <h1>Saves</h1><table><tr><th>Name</th><th>Size</th></tr>
+                <h1>Saves</h1><table><tr><th>Name</th><th>Size</th><th></th></tr>
                 """);
 
         try {
@@ -92,13 +118,10 @@ Data:<br><br>
             List<S3Object> objects = listObjectsResponse.contents();
             for (S3Object object : objects) {
                 String shortName = object.key().substring(5);
-                stringBuilder.append("<tr><td><a href='load?name=");
-                stringBuilder.append(shortName);
-                stringBuilder.append("'>");
-                stringBuilder.append(shortName);
-                stringBuilder.append("</a></td><td>");
-                stringBuilder.append(object.size() / 1024);
-                stringBuilder.append(" KB</td></tr>");
+                String html = String.format("""
+            <tr><td><a href='load?name=%s'>%s</a></td><td>%d KB</td><td><div id='%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
+            """, shortName, shortName, object.size() / 1024, shortName, shortName, shortName);
+                stringBuilder.append(html);
             }
         } catch (S3Exception e) {
             logger.error("/saves", e);
@@ -121,10 +144,6 @@ Data:<br><br>
             @RequestParam(required = false) MultipartFile file,
             HttpServletResponse response
             ) throws IOException {
-        if (name == null || name.isEmpty()) {
-            response.sendError(400);
-            return "Name is required";
-        }
 
         if (data == null && (file == null || file.isEmpty())) {
             response.sendError(400);
@@ -148,15 +167,37 @@ Data:<br><br>
         return "OK";
     }
 
-    @RequestMapping(value = "/load", method = RequestMethod.GET)
-    String getSave(
-            @RequestParam String name,
+    /**
+     * Appends the prefix 'save/' to avoid deleting anything else in the bucket.
+     */
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    String deleteSave(
+            @RequestParam(required = true) String name,
             HttpServletResponse response
     ) throws IOException {
-        if (name == null || name.isEmpty()) {
-            response.sendError(400);
-            return "name is required";
+
+        logger.info("name = " + name);
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(SAVE_S3_BUCKET)
+                .key("save/" + name)
+                .build();
+        try {
+            s3.deleteObject(deleteObjectRequest);
         }
+        catch (S3Exception e) {
+            logger.info("",e);
+            response.sendError(400);
+            return name + "does not exist";
+        }
+
+        return "OK";
+    }
+
+    @RequestMapping(value = "/load", method = RequestMethod.GET)
+    String getSave(
+            @RequestParam(required = true) String name,
+            HttpServletResponse response
+    ) throws IOException {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(SAVE_S3_BUCKET)
@@ -172,9 +213,6 @@ Data:<br><br>
             return name + "does not exist";
         }
 
-//        response.sendRedirect("http://static.bergw.xyz/save/" + name);
-//        return "";
-
         StringBuilder stringBuilder = new StringBuilder("""
 <!DOCTYPE html>
 <html>
@@ -188,11 +226,21 @@ Data:<br><br>
                 stringBuilder.append("<br>");
             }
         }
-        else if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+        else if (name.endsWith(".png") ||
+                name.endsWith(".jpg") ||
+                name.endsWith(".jpeg") ||
+                name.endsWith(".gif")) {
             stringBuilder.append("<img src='http://static.bergw.xyz/save/" + name + "'>");
         }
         else if (name.endsWith(".mp4")) {
             stringBuilder.append("<video controls><source type='video/mp4' src='http://static.bergw.xyz/save/" + name + "'></video>");
+        }
+        else if (name.endsWith(".mp3")) {
+            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://static.bergw.xyz/save/" + name + "'></video>");
+        }
+        else {
+            response.sendRedirect("http://static.bergw.xyz/save/" + name);
+            return "";
         }
 
         stringBuilder.append("</body></html>");
