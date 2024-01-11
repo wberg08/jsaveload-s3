@@ -81,7 +81,7 @@ Data:<br><br>
                 <script type="text/javascript">
                 function deleteF(name) {
                     let uiDiv = document.createElement("div");
-                    record = document.getElementById(name);
+                    myDelete = document.getElementById("delete" + name);
                     button = document.getElementById(name + "-button");
     
                     const xhr = new XMLHttpRequest();
@@ -101,7 +101,7 @@ Data:<br><br>
                     };
                     xhr.send(null);
     
-                    record.appendChild(uiDiv);
+                    myDelete.appendChild(uiDiv);
                 }
                 </script>
                                 
@@ -119,8 +119,8 @@ Data:<br><br>
             for (S3Object object : objects) {
                 String shortName = object.key().substring(5);
                 String html = String.format("""
-            <tr><td><a href='load?name=%s'>%s</a></td><td>%d KB</td><td><div id='%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
-            """, shortName, shortName, object.size() / 1024, shortName, shortName, shortName);
+            <tr><td><a href='load?name=%s'>%s</a></td><td>%d KB</td><td><button onclick="location.href='editText?name=%s'" type="button">Edit</button></td><td><div id='delete%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
+            """, shortName, shortName, object.size() / 1024, shortName, shortName, shortName, shortName);
                 stringBuilder.append(html);
             }
         } catch (S3Exception e) {
@@ -230,13 +230,13 @@ Data:<br><br>
                 name.endsWith(".jpg") ||
                 name.endsWith(".jpeg") ||
                 name.endsWith(".gif")) {
-            stringBuilder.append("<img src='http://static.bergw.xyz/save/" + name + "'>");
+            stringBuilder.append("<img src='http://static.bergw.xyz/save/").append(name).append("'>");
         }
         else if (name.endsWith(".mp4")) {
-            stringBuilder.append("<video controls><source type='video/mp4' src='http://static.bergw.xyz/save/" + name + "'></video>");
+            stringBuilder.append("<video controls><source type='video/mp4' src='http://static.bergw.xyz/save/").append(name).append("'></video>");
         }
         else if (name.endsWith(".mp3")) {
-            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://static.bergw.xyz/save/" + name + "'></video>");
+            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://static.bergw.xyz/save/").append(name).append("'></video>");
         }
         else {
             response.sendRedirect("http://static.bergw.xyz/save/" + name);
@@ -245,5 +245,79 @@ Data:<br><br>
 
         stringBuilder.append("</body></html>");
         return stringBuilder.toString();
+    }
+
+    @RequestMapping(value = "/editText", method = RequestMethod.GET)
+    String editText(
+            @RequestParam(required = true) String name,
+            HttpServletResponse response
+    ) throws IOException {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(SAVE_S3_BUCKET)
+                .key("save/" + name)
+                .build();
+
+        if (!name.endsWith(".txt")) {
+            response.sendRedirect("http://static.bergw.xyz/save/" + name);
+            return "";
+        }
+
+        ResponseInputStream<GetObjectResponse> object;
+        try {
+            object = s3.getObject(getObjectRequest);
+        } catch (S3Exception e) {
+            response.sendError(400);
+            return name + "does not exist";
+        }
+
+        Scanner scanner = new Scanner(object);
+        StringBuilder textFile = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            textFile.append(scanner.nextLine());
+            textFile.append("&#13;&#10;");
+        }
+
+        return String.format("""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Edit: %s</title>
+                  <style type="text/css">
+                  body {
+                    margin: 10px;
+                    background-color: #000;
+                  }
+                  * {
+                    margin: 10px;
+                  }
+                  h1 {
+                    color: #555;
+                  }
+                  textarea {
+                    background-color: #111;
+                    color: #999;
+                    border-style: ridge;
+                    border-width: 10px;
+                    padding: 10px;
+                    -webkit-box-sizing: border-box;
+                    -moz-box-sizing: border-box;
+                    box-sizing: border-box;
+                    width: 98%%;
+                  }
+                  </style>
+                  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+                  <meta content="utf-8" http-equiv="encoding">
+                </head>
+                <body>
+                <h1>Edit: %s</h1>
+                <textarea rows="20" cols="100" id="data" name="data" form="save">%s</textarea>
+                <form action="save" method="post" enctype="multipart/form-data" id="save">
+                  <input type="hidden" id="name" name="name" value="%s">
+                  <input type="submit" value="Submit">
+                </form>
+                </body>
+                </html>
+                """, name, name, textFile, name);
     }
 }
