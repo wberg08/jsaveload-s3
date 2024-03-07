@@ -36,6 +36,11 @@ public class MainController {
         response.sendRedirect("http://static.bergw.xyz");
     }
 
+    @RequestMapping("/shootzem")
+    void shootzem(HttpServletResponse response) throws IOException {
+        response.sendRedirect("http://shootzem.s3-website-eu-west-1.amazonaws.com/shootzem/");
+    }
+
     @RequestMapping(value = "/save", method = RequestMethod.GET)
     String getSaveUi() {
         return """
