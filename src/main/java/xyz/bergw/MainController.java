@@ -82,6 +82,9 @@ Data:<br><br>
         StringBuilder stringBuilder = new StringBuilder("""
                 <!DOCTYPE html>
                 <html>
+		<head>
+                  <link rel="shortcut icon" href="https://static.bergw.xyz/res/savefavicon.png">
+		</head>
                 <body>
                 <script type="text/javascript">
                 function deleteF(name) {
