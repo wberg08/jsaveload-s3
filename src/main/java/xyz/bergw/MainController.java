@@ -350,6 +350,13 @@ Data:<br><br>
                   </style>
                   <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
                   <meta content="utf-8" http-equiv="encoding">
+                
+                  <script>
+                    function scrollToBottom() {
+                        var textarea = document.getElementById('data');
+                        textarea.scrollTop = textarea.scrollHeight;
+                    }
+                  </script>
                 </head>
                 <body>
                 <h1>Edit: %s</h1>
@@ -358,6 +365,7 @@ Data:<br><br>
                   <input type="hidden" id="name" name="name" value="%s">
                   <input type="submit" value="Submit">
                 </form>
+                <button onclick="scrollToBottom()">Scroll to bottom</button>
                 </body>
                 </html>
                 """, name, name, textFile, name);
