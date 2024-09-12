@@ -3,10 +3,7 @@ package xyz.bergw;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -48,7 +45,7 @@ public class MainController {
 <html>
 <body>
 
-<a href='saves'>Saves</a><br><br>
+<a href='saves/save/'>Saves</a><br><br>
 
 <h1>Save</h1>
 
@@ -77,8 +74,13 @@ Data:<br><br>
                 """;
     }
 
-    @RequestMapping(value = "/saves", method = RequestMethod.GET)
+    @RequestMapping(value = "/saves/save/", method = RequestMethod.GET)
     String getSaves(HttpServletResponse response) throws IOException {
+        return getSaves("", response);
+    }
+
+    @RequestMapping(value = "/saves/save/{path}", method = RequestMethod.GET)
+    String getSaves(@PathVariable(value="path") String path, HttpServletResponse response) throws IOException {
         StringBuilder stringBuilder = new StringBuilder("""
                 <!DOCTYPE html>
                 <html>
@@ -93,7 +95,7 @@ Data:<br><br>
                     button = document.getElementById(name + "-button");
     
                     const xhr = new XMLHttpRequest();
-                    xhr.open("POST", "delete?name=" + name, true);
+                    xhr.open("POST", "/delete?name=" + name, true);
                     xhr.onload = (e) => {
                       if (xhr.readyState === 4) {
                         if (xhr.status === 200) {
@@ -112,23 +114,55 @@ Data:<br><br>
                     myDelete.appendChild(uiDiv);
                 }
                 </script>
-                                
-                <h1>Saves</h1><table><tr><th>Name</th><th>Size</th><th></th></tr>
                 """);
 
         try {
+            if ("".equals(path)) {
+                ListObjectsRequest lo = ListObjectsRequest.builder()
+                        .bucket(SAVE_S3_BUCKET)
+                        .prefix("save/")
+                        .delimiter("/")
+                        .build();
+                ListObjectsResponse lor = s3.listObjects(lo);
+
+                stringBuilder.append(
+                        "<p><h1>groups</h1></p>");
+
+                for (CommonPrefix commonPrefix : lor.commonPrefixes()) {
+                    String subpath = commonPrefix.prefix().substring(5, commonPrefix.prefix().length() - 1);
+                    stringBuilder.append("<h2><a href='/saves/save/" + subpath + "'>" + subpath + "</a></h2> ");
+                }
+            }
+
             ListObjectsRequest listObjects = ListObjectsRequest.builder()
                     .bucket(SAVE_S3_BUCKET)
-                    .prefix("save")
+                    .prefix("save/" + path)
                     .build();
-
             ListObjectsResponse listObjectsResponse = s3.listObjects(listObjects);
+
+            stringBuilder.append(
+                    "<p><h1>Saves at " + ("".equals(path) ? "/" : path) + "</h1></p><table><tr><th>Name</th><th>Size</th><th></th></tr>");
+
             List<S3Object> objects = listObjectsResponse.contents();
             for (S3Object object : objects) {
-                String shortName = object.key().substring(5);
+                String shortName = object.key();
+                logger.debug("shortName " + shortName);
+                int lastSlashIndex = shortName.lastIndexOf('/');
+                if ("".equals(path) && lastSlashIndex != 4) {
+                    continue;
+                }
+                shortName = shortName.substring(lastSlashIndex + 1);
+
                 String html = String.format("""
-            <tr><td><a href='load?name=%s'>%s</a></td><td>%d KB</td><td><button onclick="location.href='editText?name=%s'" type="button">Edit</button></td><td><div id='delete%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
-            """, shortName, shortName, object.size() / 1024, shortName, shortName, shortName, shortName);
+            <tr><td><a href='/load?name=%s'>%s</a></td><td>%d KB</td><td><button onclick="location.href='/editText?name=%s'" type="button">Edit</button></td><td><div id='delete%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
+            """,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        shortName,
+                        object.size() / 1024,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        path + ("".equals(path) ? "" : "/" ) + shortName);
                 stringBuilder.append(html);
             }
         } catch (S3Exception e) {
