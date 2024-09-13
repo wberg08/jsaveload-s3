@@ -114,6 +114,8 @@ Data:<br><br>
                     myDelete.appendChild(uiDiv);
                 }
                 </script>
+
+<a href='/save/'>Save</a><br><br>
                 """);
 
         try {
