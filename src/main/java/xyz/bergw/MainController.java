@@ -138,7 +138,7 @@ Data:<br><br>
 
             ListObjectsRequest listObjects = ListObjectsRequest.builder()
                     .bucket(SAVE_S3_BUCKET)
-                    .prefix("save/" + path)
+                    .prefix("save/" + path + "/")
                     .build();
             ListObjectsResponse listObjectsResponse = s3.listObjects(listObjects);
 
