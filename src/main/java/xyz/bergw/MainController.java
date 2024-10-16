@@ -43,6 +43,10 @@ public class MainController {
         return """
 <!DOCTYPE html>
 <html>
+
+<head>
+<link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+</head>
 <body>
 
 <a href='saves/save/'>Saves</a><br><br>
@@ -86,6 +90,7 @@ Data:<br><br>
                 <html>
 		<head>
                   <link rel="shortcut icon" href="https://static.bergw.xyz/res/savefavicon.png">
+		  <link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
 		</head>
                 <body>
                 <script type="text/javascript">
@@ -260,6 +265,10 @@ Data:<br><br>
         StringBuilder stringBuilder = new StringBuilder("""
 <!DOCTYPE html>
 <html>
+
+<head>
+<link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+</head>
 <body>
 """);
 
