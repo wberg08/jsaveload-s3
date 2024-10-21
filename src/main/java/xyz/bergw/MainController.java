@@ -120,7 +120,7 @@ Data:<br><br>
                 }
                 </script>
 
-<a href='/save/'>Save</a><br><br>
+<a href='/save'>Save</a><br><br>
                 """);
 
         try {
@@ -141,9 +141,19 @@ Data:<br><br>
                 }
             }
 
+            logger.info("SAVE_S3_BUCKET {}", SAVE_S3_BUCKET);
+            logger.info("prefix {}","save/" + path + "/");
+
+            String prefix;
+            if (path.isEmpty()) {
+                prefix = "save/";
+            } else {
+                prefix = "save/" + path + "/";
+            }
+
             ListObjectsRequest listObjects = ListObjectsRequest.builder()
                     .bucket(SAVE_S3_BUCKET)
-                    .prefix("save/" + path + "/")
+                    .prefix(prefix)
                     .build();
             ListObjectsResponse listObjectsResponse = s3.listObjects(listObjects);
 
@@ -153,7 +163,6 @@ Data:<br><br>
             List<S3Object> objects = listObjectsResponse.contents();
             for (S3Object object : objects) {
                 String shortName = object.key();
-                logger.debug("shortName " + shortName);
                 int lastSlashIndex = shortName.lastIndexOf('/');
                 if ("".equals(path) && lastSlashIndex != 4) {
                     continue;
