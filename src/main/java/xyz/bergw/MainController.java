@@ -277,6 +277,7 @@ Data:<br><br>
 
 <head>
 <link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+<style>img{max-width:100vw;max-height:100vh}} video{max-width:100vw;max-height:100vh}</style>
 </head>
 <body>
 """);
@@ -370,6 +371,7 @@ Data:<br><br>
                   </style>
                   <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
                   <meta content="utf-8" http-equiv="encoding">
+                  <link rel="shortcut icon" href="https://static.bergw.xyz/res/savefavicon.png">
                 
                   <script>
                     function scrollToBottom() {
