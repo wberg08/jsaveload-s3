@@ -97,7 +97,7 @@ Data:<br><br>
                 function deleteF(name) {
                     let uiDiv = document.createElement("div");
                     myDelete = document.getElementById("delete" + name);
-                    button = document.getElementById(name + "-button");
+                    button = document.getElementById(name + "-delete-button");
     
                     const xhr = new XMLHttpRequest();
                     xhr.open("POST", "/delete?name=" + name, true);
@@ -117,6 +117,31 @@ Data:<br><br>
                     xhr.send(null);
     
                     myDelete.appendChild(uiDiv);
+                }
+
+                function archiveF(name) {
+                    let uiDiv = document.createElement("div");
+                    myArchive = document.getElementById("archive" + name);
+                    button = document.getElementById(name + "-archive-button");
+    
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/archive?name=" + name, true);
+                    xhr.onload = (e) => {
+                      if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                          uiDiv.innerHTML = "Archived"
+                          button.remove();
+                        } else {
+                          uiDiv.innerHTML = "Archive failed"
+                        }
+                      }
+                    };
+                    xhr.onerror = (e) => {
+                      uiDiv.innerHTML = "Archive really failed"
+                    };
+                    xhr.send(null);
+    
+                    myArchive.appendChild(uiDiv);
                 }
                 </script>
 
@@ -170,11 +195,20 @@ Data:<br><br>
                 shortName = shortName.substring(lastSlashIndex + 1);
 
                 String html = String.format("""
-            <tr><td><a href='/load?name=%s'>%s</a></td><td>%d KB</td><td><button onclick="location.href='/editText?name=%s'" type="button">Edit</button></td><td><div id='delete%s'><button id='%s-button' onclick=\"deleteF('%s')\">Delete</button></div></td></tr>
+		<tr>
+		  <td><a href='/load?name=%s'>%s</a></td>
+		  <td>%d KB</td>
+		  <td><button onclick="location.href='/editText?name=%s'" type="button">Edit</button></td>
+		  <td><div id='archive%s'><button id='%s-archive-button' onclick=\"archiveF('%s')\">Archive</button></div></td>
+		  <td><div id='delete%s'><button id='%s-delete-button' onclick=\"deleteF('%s')\">Delete</button></div></td>
+		</tr>
             """,
                         path + ("".equals(path) ? "" : "/" ) + shortName,
                         shortName,
                         object.size() / 1024,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
+                        path + ("".equals(path) ? "" : "/" ) + shortName,
                         path + ("".equals(path) ? "" : "/" ) + shortName,
                         path + ("".equals(path) ? "" : "/" ) + shortName,
                         path + ("".equals(path) ? "" : "/" ) + shortName,
@@ -233,13 +267,48 @@ Data:<br><br>
             @RequestParam(required = true) String name,
             HttpServletResponse response
     ) throws IOException {
-
-        logger.info("name = " + name);
+        logger.info("delete name = " + name);
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(SAVE_S3_BUCKET)
                 .key("save/" + name)
                 .build();
         try {
+            s3.deleteObject(deleteObjectRequest);
+        }
+        catch (S3Exception e) {
+            logger.info("",e);
+            response.sendError(400);
+            return name + "does not exist";
+        }
+
+        return "OK";
+    }
+
+    /**
+     * Appends the prefix 'save/' to avoid archiving anything else in the bucket.
+     */
+    @RequestMapping(value = "/archive", method = RequestMethod.POST)
+    String archiveSave(
+            @RequestParam(required = true) String name,
+            HttpServletResponse response
+    ) throws IOException {
+        logger.info("archive name = " + name);
+
+        String objectName = name.substring(name.lastIndexOf("/") + 1);
+
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                .sourceBucket(SAVE_S3_BUCKET)
+                .sourceKey("save/" + name)
+                .destinationBucket(SAVE_S3_BUCKET)
+                .destinationKey("save/archive/" + objectName)
+                .build();
+
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(SAVE_S3_BUCKET)
+                .key("save/" + name)
+                .build();
+        try {
+            s3.copyObject(copyObjectRequest);
             s3.deleteObject(deleteObjectRequest);
         }
         catch (S3Exception e) {
