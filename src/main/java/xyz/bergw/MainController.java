@@ -28,6 +28,9 @@ public class MainController {
         s3 = S3Client.builder().region(Region.EU_WEST_1).build();
     }
 
+    @RequestMapping("/healthcheck")
+    void healthcheck(HttpServletResponse response) throws IOException {}
+
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
         response.sendRedirect("http://static.bergw.xyz");
