@@ -33,7 +33,7 @@ public class MainController {
 
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
-        response.sendRedirect("http://static.bergw.xyz");
+        response.sendRedirect("http://www.bergw.xyz");
     }
 
     @RequestMapping("/shootzem")
@@ -48,7 +48,7 @@ public class MainController {
 <html>
 
 <head>
-<link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+<link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
 </head>
 <body>
 
@@ -92,8 +92,8 @@ Data:<br><br>
                 <!DOCTYPE html>
                 <html>
 		<head>
-                  <link rel="shortcut icon" href="https://static.bergw.xyz/res/savefavicon.png">
-		  <link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+                  <link rel="shortcut icon" href="https://www.bergw.xyz/res/savefavicon.png">
+		  <link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
 		</head>
                 <body>
                 <script type="text/javascript">
@@ -348,7 +348,7 @@ Data:<br><br>
 <html>
 
 <head>
-<link rel="stylesheet" href="https://static.bergw.xyz/res/savestyle.css">
+<link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
 <style>img{max-width:100vw;max-height:100vh}} video{max-width:100vw;max-height:100vh}</style>
 </head>
 <body>
@@ -365,16 +365,16 @@ Data:<br><br>
                 name.endsWith(".jpg") ||
                 name.endsWith(".jpeg") ||
                 name.endsWith(".gif")) {
-            stringBuilder.append("<img src='http://static.bergw.xyz/save/").append(name).append("'>");
+            stringBuilder.append("<img src='http://www.bergw.xyz/save/").append(name).append("'>");
         }
         else if (name.endsWith(".mp4")) {
-            stringBuilder.append("<video controls><source type='video/mp4' src='http://static.bergw.xyz/save/").append(name).append("'></video>");
+            stringBuilder.append("<video controls><source type='video/mp4' src='http://www.bergw.xyz/save/").append(name).append("'></video>");
         }
         else if (name.endsWith(".mp3")) {
-            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://static.bergw.xyz/save/").append(name).append("'></video>");
+            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://www.bergw.xyz/save/").append(name).append("'></video>");
         }
         else {
-            response.sendRedirect("http://static.bergw.xyz/save/" + name);
+            response.sendRedirect("http://www.bergw.xyz/save/" + name);
             return "";
         }
 
@@ -394,7 +394,7 @@ Data:<br><br>
                 .build();
 
         if (!name.endsWith(".txt")) {
-            response.sendRedirect("http://static.bergw.xyz/save/" + name);
+            response.sendRedirect("http://www.bergw.xyz/save/" + name);
             return "";
         }
 
@@ -443,7 +443,7 @@ Data:<br><br>
                   </style>
                   <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
                   <meta content="utf-8" http-equiv="encoding">
-                  <link rel="shortcut icon" href="https://static.bergw.xyz/res/savefavicon.png">
+                  <link rel="shortcut icon" href="https://www.bergw.xyz/res/savefavicon.png">
                 
                   <script>
                     function scrollToBottom() {
