@@ -33,7 +33,12 @@ public class MainController {
 
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
-        response.sendRedirect("http://www.bergw.xyz");
+        response.sendRedirect("https://www.bergw.xyz");
+    }
+
+    @RequestMapping("/mail")
+    void mail(HttpServletResponse response) throws IOException {
+        response.sendRedirect("https://bergw-xyz.awsapps.com/mail");
     }
 
     @RequestMapping("/shootzem")
@@ -365,16 +370,16 @@ Data:<br><br>
                 name.endsWith(".jpg") ||
                 name.endsWith(".jpeg") ||
                 name.endsWith(".gif")) {
-            stringBuilder.append("<img src='http://www.bergw.xyz/save/").append(name).append("'>");
+            stringBuilder.append("<img src='https://www.bergw.xyz/save/").append(name).append("'>");
         }
         else if (name.endsWith(".mp4")) {
-            stringBuilder.append("<video controls><source type='video/mp4' src='http://www.bergw.xyz/save/").append(name).append("'></video>");
+            stringBuilder.append("<video controls><source type='video/mp4' src='https://www.bergw.xyz/save/").append(name).append("'></video>");
         }
         else if (name.endsWith(".mp3")) {
-            stringBuilder.append("<audio controls><source type='audio/mpeg' src='http://www.bergw.xyz/save/").append(name).append("'></video>");
+            stringBuilder.append("<audio controls><source type='audio/mpeg' src='https://www.bergw.xyz/save/").append(name).append("'></video>");
         }
         else {
-            response.sendRedirect("http://www.bergw.xyz/save/" + name);
+            response.sendRedirect("https://www.bergw.xyz/save/" + name);
             return "";
         }
 
@@ -394,7 +399,7 @@ Data:<br><br>
                 .build();
 
         if (!name.endsWith(".txt")) {
-            response.sendRedirect("http://www.bergw.xyz/save/" + name);
+            response.sendRedirect("https://www.bergw.xyz/save/" + name);
             return "";
         }
 
