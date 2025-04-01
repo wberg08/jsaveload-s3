@@ -33,12 +33,17 @@ public class MainController {
 
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
-        response.sendRedirect("https://www.bergw.xyz");
+        response.sendRedirect("https://www.bergw.xyz/");
     }
 
     @RequestMapping("/mail")
     void mail(HttpServletResponse response) throws IOException {
         response.sendRedirect("https://bergw-xyz.awsapps.com/mail");
+    }
+
+    @RequestMapping("/blog")
+    void blog(HttpServletResponse response) throws IOException {
+        response.sendRedirect("https://blog.bergw.xyz/");
     }
 
     @RequestMapping("/shootzem")
