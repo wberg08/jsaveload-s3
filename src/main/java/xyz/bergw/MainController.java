@@ -34,7 +34,23 @@ public class MainController {
 
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
-        response.sendRedirect("https://www.bergw.xyz/");
+
+        found(response, "https://www.bergw.xyz/");
+    }
+
+    @RequestMapping("/mail")
+    void mail(HttpServletResponse response) throws IOException {
+        found(response, "https://bergw-xyz.awsapps.com/mail");
+    }
+
+    @RequestMapping("/blog")
+    void blog(HttpServletResponse response) throws IOException {
+        found(response, "https://blog.bergw.xyz/");
+    }
+
+    @RequestMapping("/shootzem")
+    void shootzem(HttpServletResponse response) throws IOException {
+        found(response, "http://shootzem.s3-website-eu-west-1.amazonaws.com/shootzem/");
     }
 
     @RequestMapping("/setCookie")
@@ -45,21 +61,6 @@ public class MainController {
     @RequestMapping("/getCookie")
     String getCookie(HttpServletResponse response, @CookieValue("password") String cookie) throws IOException {
         return cookie;
-    }
-
-    @RequestMapping("/mail")
-    void mail(HttpServletResponse response) throws IOException {
-        response.sendRedirect("https://bergw-xyz.awsapps.com/mail");
-    }
-
-    @RequestMapping("/blog")
-    void blog(HttpServletResponse response) throws IOException {
-        response.sendRedirect("https://blog.bergw.xyz/");
-    }
-
-    @RequestMapping("/shootzem")
-    void shootzem(HttpServletResponse response) throws IOException {
-        response.sendRedirect("http://shootzem.s3-website-eu-west-1.amazonaws.com/shootzem/");
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.GET)
@@ -484,5 +485,15 @@ Data:<br><br>
                 </body>
                 </html>
                 """, name, name, textFile, name);
+    }
+
+    /**
+     * sendRedirect sets 302
+     */
+    private static void found(HttpServletResponse response, String url) throws IOException {
+        response.setStatus(301);
+        response.setHeader("Location", url);
+        response.setHeader("Connection", "close");
+        response.flushBuffer();
     }
 }
