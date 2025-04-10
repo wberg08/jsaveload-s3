@@ -53,16 +53,6 @@ public class MainController {
         found(response, "http://shootzem.s3-website-eu-west-1.amazonaws.com/shootzem/");
     }
 
-    @RequestMapping("/setCookie")
-    void addCookie(HttpServletResponse response) throws IOException {
-        response.addCookie(new Cookie("password", "d6d5d6f6-95e2-4c1e-9ca3-69bc94a52d91"));
-    }
-
-    @RequestMapping("/getCookie")
-    String getCookie(HttpServletResponse response, @CookieValue("password") String cookie) throws IOException {
-        return cookie;
-    }
-
     @RequestMapping(value = "/save", method = RequestMethod.GET)
     String getSaveUi() {
         return """
