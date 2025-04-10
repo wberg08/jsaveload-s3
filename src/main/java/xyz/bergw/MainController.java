@@ -1,5 +1,6 @@
 package xyz.bergw;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,16 @@ public class MainController {
     @RequestMapping("/")
     void root(HttpServletResponse response) throws IOException {
         response.sendRedirect("https://www.bergw.xyz/");
+    }
+
+    @RequestMapping("/setCookie")
+    void addCookie(HttpServletResponse response) throws IOException {
+        response.addCookie(new Cookie("password", "d6d5d6f6-95e2-4c1e-9ca3-69bc94a52d91"));
+    }
+
+    @RequestMapping("/getCookie")
+    String getCookie(HttpServletResponse response, @CookieValue("password") String cookie) throws IOException {
+        return cookie;
     }
 
     @RequestMapping("/mail")
