@@ -48,11 +48,6 @@ public class MainController {
         found(response, "https://blog.bergw.xyz/");
     }
 
-    @RequestMapping("/shootzem")
-    void shootzem(HttpServletResponse response) throws IOException {
-        found(response, "http://shootzem.s3-website-eu-west-1.amazonaws.com/shootzem/");
-    }
-
     @RequestMapping(value = "/save", method = RequestMethod.GET)
     String getSaveUi() {
         return """
