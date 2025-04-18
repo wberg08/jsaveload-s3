@@ -335,7 +335,6 @@ Data:<br><br>
             @RequestParam(required = true) String name,
             HttpServletResponse response
     ) throws IOException {
-
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(SAVE_S3_BUCKET)
                 .key("save/" + name)
@@ -394,6 +393,10 @@ Data:<br><br>
             @RequestParam(required = true) String name,
             HttpServletResponse response
     ) throws IOException {
+        if (!name.endsWith(".txt")) {
+            response.sendRedirect("https://www.bergw.xyz/save/" + name);
+            return "";
+        }
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(SAVE_S3_BUCKET)
