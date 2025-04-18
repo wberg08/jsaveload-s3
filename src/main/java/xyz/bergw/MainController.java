@@ -15,6 +15,8 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 public class MainController {
@@ -24,9 +26,11 @@ public class MainController {
     private static final String SAVE_S3_BUCKET = "bergw-xyz";
     
     private final S3Client s3;
+    private final Pattern secretGroup;
 
     public MainController() {
         s3 = S3Client.builder().region(Region.EU_WEST_1).build();
+        secretGroup = Pattern.compile("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", Pattern.CASE_INSENSITIVE);
     }
 
     @RequestMapping("/healthcheck")
@@ -172,7 +176,10 @@ Data:<br><br>
 
                 for (CommonPrefix commonPrefix : lor.commonPrefixes()) {
                     String subpath = commonPrefix.prefix().substring(5, commonPrefix.prefix().length() - 1);
-                    stringBuilder.append("<h2><a href='/saves/save/" + subpath + "'>" + subpath + "</a></h2> ");
+                    Matcher matcher = secretGroup.matcher(subpath);
+                    if (!matcher.find()) {
+                        stringBuilder.append("<h2><a href='/saves/save/" + subpath + "'>" + subpath + "</a></h2> ");
+                    }
                 }
             }
 
