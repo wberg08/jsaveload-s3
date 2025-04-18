@@ -98,10 +98,10 @@ Data:<br><br>
         StringBuilder stringBuilder = new StringBuilder("""
                 <!DOCTYPE html>
                 <html>
-		<head>
+        <head>
                   <link rel="shortcut icon" href="https://www.bergw.xyz/res/savefavicon.png">
-		  <link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
-		</head>
+          <link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
+        </head>
                 <body>
                 <script type="text/javascript">
                 function deleteF(name) {
@@ -205,13 +205,13 @@ Data:<br><br>
                 shortName = shortName.substring(lastSlashIndex + 1);
 
                 String html = String.format("""
-		<tr>
-		  <td><a href='/load?name=%s'>%s</a></td>
-		  <td>%d KB</td>
-		  <td><button onclick="location.href='/editText?name=%s'" type="button">Edit</button></td>
-		  <td><div id='archive%s'><button id='%s-archive-button' onclick=\"archiveF('%s')\">Archive</button></div></td>
-		  <td><div id='delete%s'><button id='%s-delete-button' onclick=\"deleteF('%s')\">Delete</button></div></td>
-		</tr>
+        <tr>
+          <td><a href='/load?name=%s'>%s</a></td>
+          <td>%d KB</td>
+          <td><button onclick="location.href='/editText?name=%s'" type="button">Edit</button></td>
+          <td><div id='archive%s'><button id='%s-archive-button' onclick=\"archiveF('%s')\">Archive</button></div></td>
+          <td><div id='delete%s'><button id='%s-delete-button' onclick=\"deleteF('%s')\">Delete</button></div></td>
+        </tr>
             """,
                         path + ("".equals(path) ? "" : "/" ) + shortName,
                         shortName,
