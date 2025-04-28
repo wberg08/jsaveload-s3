@@ -4,6 +4,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -12,13 +14,17 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RestController
+@PropertySource("classpath:bergw.properties")
 public class MainController {
 
     Logger logger = LoggerFactory.getLogger(MainController.class);
@@ -27,6 +33,9 @@ public class MainController {
     
     private final S3Client s3;
     private final Pattern secretGroup;
+
+    @Value("${save.password}")
+    private String savePassword = null;
 
     public MainController() {
         s3 = S3Client.builder().region(Region.EU_WEST_1).build();
@@ -93,12 +102,19 @@ Data:<br><br>
     }
 
     @RequestMapping(value = "/saves/save/", method = RequestMethod.GET)
-    String getSaves(HttpServletResponse response) throws IOException {
-        return getSaves("", response);
+    String getSaves(@CookieValue(name = "password", required = false) String password, HttpServletResponse response) throws IOException {
+        return getSaves("", password, response);
     }
 
     @RequestMapping(value = "/saves/save/{path}", method = RequestMethod.GET)
-    String getSaves(@PathVariable(value="path") String path, HttpServletResponse response) throws IOException {
+    String getSaves(@PathVariable(value="path") String path,
+                    @CookieValue(name = "password", required = false) String password,
+                    HttpServletResponse response) throws IOException {
+        boolean authenticated = false;
+        if (savePassword != null && password != null && password.equals(savePassword)) {
+            authenticated = true;
+        }
+
         StringBuilder stringBuilder = new StringBuilder("""
                 <!DOCTYPE html>
                 <html>
@@ -108,13 +124,21 @@ Data:<br><br>
         </head>
                 <body>
                 <script type="text/javascript">
+                var password = "";
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                  cookie = cookie.trim();
+                  if (cookie.startsWith("password=")) {
+                    password = cookie.substring(9);
+                  }
+                }
                 function deleteF(name) {
                     let uiDiv = document.createElement("div");
                     myDelete = document.getElementById("delete" + name);
                     button = document.getElementById(name + "-delete-button");
     
                     const xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/delete?name=" + name, true);
+                    xhr.open("POST", "/delete?name=" + name + "&password=" + password, true);
                     xhr.onload = (e) => {
                       if (xhr.readyState === 4) {
                         if (xhr.status === 200) {
@@ -177,7 +201,7 @@ Data:<br><br>
                 for (CommonPrefix commonPrefix : lor.commonPrefixes()) {
                     String subpath = commonPrefix.prefix().substring(5, commonPrefix.prefix().length() - 1);
                     Matcher matcher = secretGroup.matcher(subpath);
-                    if (!matcher.find()) {
+                    if (!matcher.find() || authenticated) {
                         stringBuilder.append("<h2><a href='/saves/save/" + subpath + "'>" + subpath + "</a></h2> ");
                     }
                 }
@@ -248,11 +272,15 @@ Data:<br><br>
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     String putSave(
-            @RequestParam(required = true) String name,
+            @RequestParam String name,
             @RequestParam(required = false) String data,
             @RequestParam(required = false) MultipartFile file,
+            @CookieValue(name = "password") String password,
             HttpServletResponse response
             ) throws IOException {
+        if (savePassword != null && password != null && password.equals(savePassword)) {
+            return "401 password cookie did not match";
+        }
 
         if (data == null && (file == null || file.isEmpty())) {
             response.sendError(400);
@@ -281,10 +309,16 @@ Data:<br><br>
      */
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     String deleteSave(
-            @RequestParam(required = true) String name,
+            @RequestParam String name,
+            @RequestParam String password,
             HttpServletResponse response
     ) throws IOException {
         logger.info("delete name = " + name);
+
+        if (savePassword != null && password != null && password.equals(savePassword)) {
+            return "401 password cookie did not match";
+        }
+
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(SAVE_S3_BUCKET)
                 .key("save/" + name)
@@ -306,10 +340,15 @@ Data:<br><br>
      */
     @RequestMapping(value = "/archive", method = RequestMethod.POST)
     String archiveSave(
-            @RequestParam(required = true) String name,
+            @RequestParam String name,
+            @RequestParam String password,
             HttpServletResponse response
     ) throws IOException {
         logger.info("archive name = " + name);
+
+        if (savePassword != null && password != null && password.equals(savePassword)) {
+            return "401 password cookie did not match";
+        }
 
         String objectName = name.substring(name.lastIndexOf("/") + 1);
 
@@ -480,6 +519,17 @@ Data:<br><br>
                 </body>
                 </html>
                 """, name, name, textFile, name);
+    }
+
+    /**
+     * Used to set the password as a browser cookie.
+     * Enabling the annotation adds the method to the API and makes it insecure.
+     */
+//    @RequestMapping(value = "/setPassword", method = RequestMethod.GET)
+    void setPassword(HttpServletResponse response) throws IOException {
+        Cookie cookie = new Cookie("password", savePassword);
+        cookie.setMaxAge(60*60*24*365);
+        response.addCookie(cookie);
     }
 
     /**
