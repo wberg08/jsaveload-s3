@@ -4,3 +4,4 @@ bergw-xyz.iml
 target/
 
 src/main/resources/keystore/
+src/main/resources/bergw.properties
