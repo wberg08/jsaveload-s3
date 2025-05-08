@@ -401,7 +401,6 @@ Data:<br><br>
 
 <head>
 <link rel="stylesheet" href="https://www.bergw.xyz/res/savestyle.css">
-<style>img{max-width:100vw;max-height:100vh}} video{max-width:100vw;max-height:100vh}</style>
 </head>
 <body>
 """);
